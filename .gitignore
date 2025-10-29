@@ -55,3 +55,4 @@ nunit-*.xml
 /.vs/BookLibrary
 
 /BookLibrary.Api/appsettings*.json
+.vs/
