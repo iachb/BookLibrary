@@ -1,8 +1,10 @@
-using Microsoft.OpenApi.Models;
-using Microsoft.EntityFrameworkCore;
+using BookLibrary.Api.Mapper;
+using BookLibrary.Api.Models.Books;
+using BookLibrary.Core.Entities;
 using BookLibrary.Infrastructure.Data;
-using Microsoft.EntityFrameworkCore.Design;
-using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +21,11 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 builder.Services.AddControllers();
+
+builder.Services.AddAutoMapper(cfg =>
+{
+    cfg.AddProfile<BookProfile>();
+});
 
 var app = builder.Build();
 
