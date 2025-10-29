@@ -8,7 +8,7 @@ namespace BookLibrary.Core.Entities
 {
     public class Author
     {
-        public int PkId { get; set; }
+        public int Id { get; set; }
         public string Name { get; set; } = null!;
         public DateTime? BirthDate { get; set; }
         public ICollection<Book> Books { get; set; } = new List<Book>();
