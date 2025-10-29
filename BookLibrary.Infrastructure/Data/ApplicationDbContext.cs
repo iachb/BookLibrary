@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using BookLibrary.Core.Entities;
 
-namespace BookLibrary.Core.Data
+namespace BookLibrary.Infrastructure.Data
 {
     public class ApplicationDbContext : DbContext
     {
