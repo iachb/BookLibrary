@@ -1,4 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using BookLibrary.Api.Models.Books;
+using BookLibrary.Api.Profiles;
+using BookLibrary.Core.Entities;
+using BookLibrary.Infrastructure.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace BookLibrary.Api.Controllers
 {
@@ -6,6 +12,16 @@ namespace BookLibrary.Api.Controllers
     [ApiController]
     public class BooksController : ControllerBase
     {
+
+        private readonly BookService _bookService;
+        private readonly IMapper _mapper;
+
+        public BooksController(BookService bookService, IMapper mapper)
+        {
+            _bookService = bookService;
+            _mapper = mapper;
+        }
+
         // GET: api/<BooksController>
         [HttpGet]
         public IEnumerable<string> Get()
@@ -22,8 +38,12 @@ namespace BookLibrary.Api.Controllers
 
         // POST api/<BooksController>
         [HttpPost]
-        public void Post([FromBody]string value)
+        public async Task<StatusCodeResult> CreateBook([FromBody] BookDTO bookDTO)
         {
+            var book = _mapper.Map<Book>(bookDTO);
+            var createdBook = await _bookService.CreateBookAsync(book, CancellationToken.None);
+            var createdBookDTO = _mapper.Map<BookDTO>(createdBook);
+            return StatusCode(201);
         }
 
         // PUT api/<BooksController>/5
