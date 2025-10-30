@@ -1,15 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace BookLibrary.Api.Models.Books
+﻿namespace BookLibrary.Api.Models.Books
 {
     public sealed class BookDTO
     {
         public int Id { get; set; }
-        [Required]
-        public string Title { get; set; } = null!;
-        [Required]
+        public string Title { get; set; } = string.Empty;
         public DateTime PublishedDate { get; set; }
-        [Required]
-        public string? AuthorName { get; set; } = string.Empty;
+        public string AuthorName { get; set; } = string.Empty;
     }
 }

@@ -36,12 +36,14 @@ namespace BookLibrary.Api.Controllers
 
         // POST api/<BooksController>
         [HttpPost]
-        public async Task<StatusCodeResult> CreateBook([FromBody] BookDTO bookDTO)
+        public async Task<ActionResult<BookDTO>> CreateBook([FromBody] CreateBookRequestDTO request)
         {
-            var book = _mapper.Map<TBook>(bookDTO);
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
+            var book = _mapper.Map<TBook>(request);
             var createdBook = await _bookService.CreateBookAsync(book, CancellationToken.None);
-            var createdBookDTO = _mapper.Map<BookDTO>(createdBook);
-            return StatusCode(201);
+            var dto = _mapper.Map<BookDTO>(createdBook);
+            return CreatedAtAction(nameof(Get), new { id = dto.Id }, _mapper.Map<CreateBookRequestDTO>(dto));
         }
 
         // PUT api/<BooksController>/5
