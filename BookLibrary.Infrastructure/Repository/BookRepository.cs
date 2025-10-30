@@ -13,6 +13,14 @@ namespace BookLibrary.Infrastructure.Repository
             _context = context;
         }
 
+        public async Task<IReadOnlyList<TBook>> GetAllAsync(CancellationToken cancellationToken = default)
+        {
+            return await _context.Books
+                .Include(b => b.Author)
+                .AsNoTracking()
+                .ToListAsync(cancellationToken);
+        }
+
         public async Task<TBook?> GetBookByTitleAsync(string name, CancellationToken cancellationToken = default)
         {
             return await _context.Books.AsNoTracking()

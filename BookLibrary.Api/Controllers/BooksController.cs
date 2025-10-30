@@ -22,9 +22,9 @@ namespace BookLibrary.Api.Controllers
 
         // GET: api/<BooksController>
         [HttpGet]
-        public IEnumerable<string> Get()
+        public async Task<IReadOnlyList<TBook>> GetAllBooks(CancellationToken cancellationToken)
         {
-            return new string[] { "value1", "value2" };
+            return await _bookService.GetAllBooksAsync(cancellationToken);
         }
 
         // GET api/<BooksController>/5

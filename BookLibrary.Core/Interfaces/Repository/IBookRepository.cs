@@ -9,6 +9,7 @@ namespace BookLibrary.Core.Interfaces.Repository
 {
     public interface IBookRepository
     {
+        public Task<IReadOnlyList<TBook>> GetAllAsync(CancellationToken cancellationToken = default);
         public Task<TBook?> GetBookByTitleAsync(string name, CancellationToken cancellationToken = default);
         public Task<TBook?> GetBookByIdAsync(int id, CancellationToken cancellationToken = default);
         public Task<TBook> AddBookAsync(TBook book, CancellationToken cancellationToken = default);

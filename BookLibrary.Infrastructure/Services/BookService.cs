@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using BookLibrary.Core.Interfaces;
+﻿using BookLibrary.Core.Interfaces;
 using BookLibrary.Core.Entities;
 using BookLibrary.Core.Interfaces.Repository;
-using BookLibrary.Infrastructure.Repository;
 
 namespace BookLibrary.Infrastructure.Services
 {
@@ -16,6 +10,11 @@ namespace BookLibrary.Infrastructure.Services
         public BookService(IBookRepository bookRepository)
         {
             _bookRepository = bookRepository;
+        }
+
+        public async Task<IReadOnlyList<TBook>> GetAllBooksAsync (CancellationToken cancellationToken)
+        {
+            return await _bookRepository.GetAllAsync(cancellationToken);
         }
 
         public async Task<TBook> CreateBookAsync(TBook book, CancellationToken cancellationToken)
