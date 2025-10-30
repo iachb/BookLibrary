@@ -26,6 +26,8 @@ builder.Services.AddAutoMapper(cfg =>
 
 var app = builder.Build();
 
+app.UseMiddleware<BookLibrary.Api.Middleware.GlobalExceptionHandlingMiddleware>();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
