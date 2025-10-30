@@ -1,9 +1,6 @@
-using BookLibrary.Api.Mapper;
-using BookLibrary.Api.Models.Books;
-using BookLibrary.Core.Entities;
+using BookLibrary.Api.Profiles;
 using BookLibrary.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);

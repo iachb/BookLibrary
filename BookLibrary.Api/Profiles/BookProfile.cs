@@ -2,7 +2,7 @@
 using BookLibrary.Core.Entities;
 using BookLibrary.Api.Models.Books;
 
-namespace BookLibrary.Api.Mapper
+namespace BookLibrary.Api.Profiles
 {
     public class BookProfile : Profile
     {

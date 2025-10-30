@@ -2,9 +2,9 @@
 {
     public sealed class BookDTO
     {
-        public int Id { get; init; }
-        public string Title { get; init; } = null!;
-        public DateTime PublishedDate { get; init; }
-        public string? AuthorName { get; init; } = string.Empty;
+        public int Id { get; set; }
+        public string Title { get; set; } = null!;
+        public DateTime PublishedDate { get; set; }
+        public string? AuthorName { get; set; } = string.Empty;
     }
 }
