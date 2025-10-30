@@ -15,8 +15,8 @@ namespace BookLibrary.Infrastructure.Data
         {
         }
 
-        public DbSet<Book> Books { get; set; }
-        public DbSet <Author> Author { get; set; }
+        public DbSet<TBook> Books { get; set; }
+        public DbSet <TAuthor> Author { get; set; }
 
     }
 }

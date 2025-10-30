@@ -9,6 +9,6 @@ namespace BookLibrary.Core.Interfaces
 {
     public interface IBookService
     {
-        public Task<Book> CreateBookAsync(Book book, CancellationToken cancellationToken = default);
+        public Task<TBook> CreateBookAsync(TBook book, CancellationToken cancellationToken = default);
     }
 }

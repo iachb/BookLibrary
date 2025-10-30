@@ -13,17 +13,17 @@ namespace BookLibrary.Infrastructure.Repository
             _context = context;
         }
 
-        public async Task<Book?> GetBookByTitleAsync(string name, CancellationToken cancellationToken = default)
+        public async Task<TBook?> GetBookByTitleAsync(string name, CancellationToken cancellationToken = default)
         {
             return await _context.Books.FirstOrDefaultAsync(b => b.Title == name, cancellationToken);
         }
 
-        public async Task<Book?> GetBookByIdAsync(int id, CancellationToken cancellationToken = default)
+        public async Task<TBook?> GetBookByIdAsync(int id, CancellationToken cancellationToken = default)
         {
             return await _context.Books.FirstOrDefaultAsync(b => b.Id == id, cancellationToken);
         }
 
-        public async Task<Book> AddBookAsync(Book book, CancellationToken cancellationToken = default)
+        public async Task<TBook> AddBookAsync(TBook book, CancellationToken cancellationToken = default)
         {
             await _context.Books.AddAsync(book, cancellationToken);
             return book;

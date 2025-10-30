@@ -1,10 +1,15 @@
 using BookLibrary.Api.Profiles;
+using BookLibrary.Core.Interfaces;
+using BookLibrary.Core.Interfaces.Repository;
 using BookLibrary.Infrastructure.Data;
+using BookLibrary.Infrastructure.Services;
+using BookLibrary.Infrastructure.Repository;    
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// DB connection
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -17,7 +22,11 @@ builder.Services.AddSwaggerGen(options =>
     options.SwaggerDoc("v1", new OpenApiInfo { Title = "BookLibrary", Version = "v1" });
 });
 
-builder.Services.AddControllers();
+// Repository registration
+builder.Services.AddScoped<IBookRepository, BookRepository>();
+
+// Service registration
+builder.Services.AddScoped<IBookService, BookService>();
 
 builder.Services.AddAutoMapper(cfg =>
 {
@@ -38,6 +47,7 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+// Add CORS
 app.UseHttpsRedirection();
 
 app.MapControllers();

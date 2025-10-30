@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace BookLibrary.Core.Entities
 {
-    public class Author
+    public class TAuthor
     {
         public int Id { get; set; }
         public string Name { get; set; } = null!;
         public DateTime? BirthDate { get; set; }
-        public ICollection<Book> Books { get; set; } = new List<Book>();
+        public ICollection<TBook> Books { get; set; } = new List<TBook>();
     }
 }

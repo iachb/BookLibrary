@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace BookLibrary.Core.Entities
 {
-    public class Book
+    public class TBook
     {
         public int Id { get; set; }
         public string Title { get; set; } = string.Empty;
@@ -16,7 +16,7 @@ namespace BookLibrary.Core.Entities
         public int AuthorId { get; set; }
 
         // Navigation property
-        public Author Author { get; set; } = null!;
+        public TAuthor Author { get; set; } = null!;
     }
 }
 

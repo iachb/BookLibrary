@@ -8,7 +8,7 @@ namespace BookLibrary.Api.Profiles
     {
         public BookProfile()
         {
-            CreateMap<Book, BookDTO>().ReverseMap();
+            CreateMap<TBook, BookDTO>().ReverseMap();
         }
     }
 }
