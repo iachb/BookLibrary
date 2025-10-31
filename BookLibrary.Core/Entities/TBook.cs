@@ -9,7 +9,7 @@ namespace BookLibrary.Core.Entities
     public class TBook
     {
         public int Id { get; set; }
-        public string Title { get; set; } = string.Empty;
+        public string Title { get; set; } = null!;
         public DateTime PublishedDate { get; set; }
 
         // Foreign key property

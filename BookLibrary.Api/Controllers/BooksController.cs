@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using BookLibrary.Api.Models.Books;
-using BookLibrary.Core.Entities;
 using BookLibrary.Core.Interfaces;
+using BookLibrary.Core.Models.Books;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BookLibrary.Api.Controllers
@@ -32,7 +32,7 @@ namespace BookLibrary.Api.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<BookDTO>> GetBook([FromRoute] int id, CancellationToken cancellationToken)
         {
-            var book = await _bookService.GetBookByIdAasync(id, cancellationToken);
+            var book = await _bookService.GetBookByIdAsync(id, cancellationToken);
             if (book == null)
             {
                 return NotFound();
@@ -46,7 +46,7 @@ namespace BookLibrary.Api.Controllers
         {
             if (!ModelState.IsValid)
                 return ValidationProblem(ModelState);
-            var book = _mapper.Map<TBook>(request);
+            var book = _mapper.Map<BookItem>(request);
             var createdBook = await _bookService.CreateBookAsync(book, cancellationToken);
             var dto = _mapper.Map<BookDTO>(createdBook);
             return CreatedAtAction(nameof(GetBook), new { id = dto.Id }, _mapper.Map<BookDTO>(dto));
@@ -54,8 +54,12 @@ namespace BookLibrary.Api.Controllers
 
         // PUT api/<BooksController>/5
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody]string value)
-        {
+        public async Task<IActionResult> UpdateBook(int id, UpdateBookDTO request, CancellationToken cancellationToken) 
+        { 
+            if (!ModelState.IsValid) return ValidationProblem(ModelState); 
+            var item = _mapper.Map<BookItem>(request); 
+            var updated = await _bookService.UpdateBookAsync(id, item, cancellationToken); 
+            return Ok(_mapper.Map<BookDTO>(updated)); 
         }
 
         // DELETE api/<BooksController>/5
