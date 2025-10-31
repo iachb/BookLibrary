@@ -11,6 +11,6 @@ namespace BookLibrary.Core.Models.Books
         public DateTime PublishedDate { get; set; }
         [ReadOnly(true)]
         public int AuthorId { get; set; }
-        public AuthorItem AuthorName { get; set; } = null!;
+        public AuthorItem Author { get; set; } = null!;
     }
 }

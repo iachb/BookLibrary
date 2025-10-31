@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
-using BookLibrary.Core.Entities;
 using BookLibrary.Api.Models.Books;
+using BookLibrary.Core.Models.Books;
 
 namespace BookLibrary.Api.Profiles
 {
@@ -8,8 +8,9 @@ namespace BookLibrary.Api.Profiles
     {
         public BookProfile()
         {
-            CreateMap<TBook, CreateBookRequestDTO>().ReverseMap();
-            CreateMap<TBook, BookDTO>().ReverseMap();
+            CreateMap<BookItem, CreateBookRequestDTO>().ReverseMap();
+            CreateMap<BookItem, BookDTO>().ReverseMap();
+            CreateMap<BookItem, UpdateBookDTO>().ReverseMap();
         }
     }
 }

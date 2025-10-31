@@ -54,9 +54,10 @@ namespace BookLibrary.Api.Controllers
 
         // PUT api/<BooksController>/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateBook(int id, UpdateBookDTO request, CancellationToken cancellationToken) 
+        public async Task<IActionResult> UpdateBook([FromRoute] int id, UpdateBookDTO request, CancellationToken cancellationToken) 
         { 
-            if (!ModelState.IsValid) return ValidationProblem(ModelState); 
+            if (!ModelState.IsValid) 
+                return ValidationProblem(ModelState); 
             var item = _mapper.Map<BookItem>(request); 
             var updated = await _bookService.UpdateBookAsync(id, item, cancellationToken); 
             return Ok(_mapper.Map<BookDTO>(updated)); 

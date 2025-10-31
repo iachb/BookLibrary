@@ -6,6 +6,7 @@ using BookLibrary.Infrastructure.Services;
 using BookLibrary.Infrastructure.Repository;    
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using BookLibrary.Core.Profiles;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,6 +32,9 @@ builder.Services.AddScoped<IBookService, BookService>();
 builder.Services.AddAutoMapper(cfg =>
 {
     cfg.AddProfile<BookProfile>();
+    cfg.AddProfile<BookItemProfile>();
+    cfg.AddProfile<AuthorProfile>();
+    cfg.AddProfile<AuthorItemProfile>();
 });
 
 var app = builder.Build();

@@ -4,9 +4,9 @@ using BookLibrary.Core.Models.Books;
 
 namespace BookLibrary.Core.Profiles
 {
-    public class BooksProfile : Profile
+    public class BookItemProfile : Profile
     {
-        public BooksProfile()
+        public BookItemProfile()
         {
             CreateMap<TBook, BookItem>().ReverseMap();
         }
