@@ -17,6 +17,11 @@ namespace BookLibrary.Infrastructure.Services
             return await _bookRepository.GetAllAsync(cancellationToken);
         }
 
+        public async Task<TBook?> GetBookByIdAasync(int id, CancellationToken cancellationToken)
+        {
+            return await _bookRepository.GetBookByIdAsync(id, cancellationToken);
+        }
+
         public async Task<TBook> CreateBookAsync(TBook book, CancellationToken cancellationToken)
         {
             var existingBook = await _bookRepository.GetBookByTitleAsync(book.Title, cancellationToken);
