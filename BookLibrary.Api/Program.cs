@@ -25,9 +25,11 @@ builder.Services.AddSwaggerGen(options =>
 
 // Repository registration
 builder.Services.AddScoped<IBookRepository, BookRepository>();
+builder.Services.AddScoped<IAuthorRepository, AuthorRepository>();
 
 // Service registration
 builder.Services.AddScoped<IBookService, BookService>();
+builder.Services.AddScoped<IAuthorService, AuthorService>();
 
 builder.Services.AddAutoMapper(cfg =>
 {

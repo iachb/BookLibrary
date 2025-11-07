@@ -9,6 +9,7 @@ namespace BookLibrary.Api.Profiles
         public AuthorProfile()
         {
             CreateMap<AuthorItem, AuthorDTO>().ReverseMap();
+            CreateMap<AuthorItem, CreateAuthorRequestDTO>().ReverseMap();
         }
     }
 }

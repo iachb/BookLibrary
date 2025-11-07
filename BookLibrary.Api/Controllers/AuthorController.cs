@@ -1,4 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using BookLibrary.Api.Models.Author;
+using BookLibrary.Core.Interfaces;
+using BookLibrary.Core.Models.Authors;
+using Microsoft.AspNetCore.Mvc;
 
 namespace BookLibrary.Api.Controllers
 {
@@ -6,6 +10,15 @@ namespace BookLibrary.Api.Controllers
     [ApiController]
     public class AuthorController : ControllerBase
     {
+        public readonly IMapper _mapper;
+        public readonly IAuthorService _authorService;
+
+        public AuthorController(IMapper mapper, IAuthorService authorService)
+        {
+            this._mapper = mapper;
+            this._authorService = authorService;
+        }
+
         // GET: api/<AuthorController>
         [HttpGet]
         public IEnumerable<string> Get()
@@ -22,8 +35,11 @@ namespace BookLibrary.Api.Controllers
 
         // POST api/<AuthorController>
         [HttpPost]
-        public void Post([FromBody]string value)
+        public async Task<ActionResult<AuthorDTO>> CreateAuthor([FromBody] CreateAuthorRequestDTO request, CancellationToken cancellationToken)
         {
+            var item = _mapper.Map<AuthorItem>(request);
+            var createdAuthor = await _authorService.CreateAuthorAsync(item, cancellationToken);
+            return Ok(_mapper.Map<AuthorDTO>(createdAuthor));
         }
 
         // PUT api/<AuthorController>/5
