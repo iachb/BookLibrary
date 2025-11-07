@@ -3,7 +3,6 @@ using BookLibrary.Api.Models.Books;
 using BookLibrary.Core.Interfaces;
 using BookLibrary.Core.Models.Books;
 using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
 
 namespace BookLibrary.Api.Controllers
 {

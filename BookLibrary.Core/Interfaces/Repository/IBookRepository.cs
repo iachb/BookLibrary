@@ -8,6 +8,7 @@ namespace BookLibrary.Core.Interfaces.Repository
         public Task<TBook?> GetBookByIdAsync(int id, CancellationToken cancellationToken = default);
         public Task<TBook> AddBookAsync(TBook book, CancellationToken cancellationToken = default);
         public Task DeleteBookById(TBook book, CancellationToken cancellationToken = default);
+        public Task LoadAuthorAsync(TBook book, CancellationToken ct = default);
         public Task SaveChangesAsync(CancellationToken cancellationToken = default);
     }
 }

@@ -43,31 +43,32 @@ namespace BookLibrary.Infrastructure.Services
 
         public async Task<BookItem> UpdateBookAsync(int id, BookItem book, CancellationToken cancellationToken)
         {
-            if (book == null)
-            {
-                throw new ArgumentNullException(nameof(book));
-            }
+            if (book is null) throw new ArgumentNullException(nameof(book));
 
             var entity = await _bookRepository.GetBookByIdAsync(id, cancellationToken);
-            if (entity == null)
-            {
-                throw new InvalidOperationException($"No book found with ID '{book.Id}'.");
-            }
+            if (entity is null)
+                throw new InvalidOperationException($"No book found with ID '{id}'.");
 
             if (!string.Equals(entity.Title, book.Title, StringComparison.OrdinalIgnoreCase))
             {
                 var other = await _bookRepository.GetBookByTitleAsync(book.Title, cancellationToken);
-                if (other != null && other.Id != book.Id)
-                {
+                if (other != null && other.Id != id)
                     throw new InvalidOperationException($"A book with the title '{book.Title}' already exists.");
-                }
             }
+
+            // Validar FK (implementa método Exists en repositorio de autor si procede)
+            // if (!await _authorRepository.ExistsAsync(book.AuthorId, cancellationToken))
+            //     throw new InvalidOperationException($"Author '{book.AuthorId}' does not exist.");
 
             entity.Title = book.Title;
             entity.PublishedDate = book.PublishedDate;
             entity.AuthorId = book.AuthorId;
 
             await _bookRepository.SaveChangesAsync(cancellationToken);
+
+            // Reload author navigation for DTO mapping
+            await _bookRepository.LoadAuthorAsync(entity, cancellationToken);
+
             return _mapper.Map<BookItem>(entity);
         }
 

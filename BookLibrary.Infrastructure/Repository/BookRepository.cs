@@ -29,8 +29,7 @@ namespace BookLibrary.Infrastructure.Repository
 
         public async Task<TBook?> GetBookByIdAsync(int id, CancellationToken cancellationToken = default)
         {
-            return await _context.Books.Include(b => b.Author).AsNoTracking()
-                .FirstOrDefaultAsync(b => b.Id == id, cancellationToken);
+            return await _context.Books.Include(b => b.Author).FirstOrDefaultAsync(b => b.Id == id, cancellationToken);
         }
 
         public async Task<TBook> AddBookAsync(TBook book, CancellationToken cancellationToken = default)
@@ -43,6 +42,10 @@ namespace BookLibrary.Infrastructure.Repository
         {
             _context.Books.Remove(book);
             await Task.CompletedTask;
+        }
+        public async Task LoadAuthorAsync(TBook book, CancellationToken ct = default)
+        {
+            await _context.Entry(book).Reference(b => b.Author).LoadAsync(ct);
         }
 
         public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
