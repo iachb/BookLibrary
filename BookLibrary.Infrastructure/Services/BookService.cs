@@ -70,5 +70,20 @@ namespace BookLibrary.Infrastructure.Services
             await _bookRepository.SaveChangesAsync(cancellationToken);
             return _mapper.Map<BookItem>(entity);
         }
+
+        public async Task DeleteBookById (int id, CancellationToken cancellationToken)
+        {
+            if(id <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(id), "The book ID must be a positive integer.");
+            }
+            var book = await _bookRepository.GetBookByIdAsync(id, cancellationToken);
+            if (book == null)
+            {
+                throw new InvalidOperationException($"No book found with ID '{id}'.");
+            }
+            await _bookRepository.DeleteBookById(book, cancellationToken);
+            await _bookRepository.SaveChangesAsync(cancellationToken);
+        }
     }
 }

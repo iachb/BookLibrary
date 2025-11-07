@@ -3,6 +3,7 @@ using BookLibrary.Api.Models.Books;
 using BookLibrary.Core.Interfaces;
 using BookLibrary.Core.Models.Books;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace BookLibrary.Api.Controllers
 {
@@ -65,8 +66,10 @@ namespace BookLibrary.Api.Controllers
 
         // DELETE api/<BooksController>/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public async Task<ActionResult> Delete(int id)
         {
+            await _bookService.DeleteBookById(id, CancellationToken.None);
+            return NoContent();
         }
     }
 }

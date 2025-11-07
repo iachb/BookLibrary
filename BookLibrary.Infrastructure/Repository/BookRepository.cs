@@ -39,6 +39,12 @@ namespace BookLibrary.Infrastructure.Repository
             return book;
         }
 
+        public async Task DeleteBookById(TBook book, CancellationToken cancellationToken = default)
+        {
+            _context.Books.Remove(book);
+            await Task.CompletedTask;
+        }
+
         public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
         {
             await _context.SaveChangesAsync(cancellationToken);

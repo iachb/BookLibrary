@@ -52,6 +52,11 @@ if (app.Environment.IsDevelopment())
 }
 
 // Add CORS
+app.UseCors(policy =>
+    policy.AllowAnyOrigin()
+          .AllowAnyMethod()
+          .AllowAnyHeader());
+
 app.UseHttpsRedirection();
 
 app.MapControllers();
