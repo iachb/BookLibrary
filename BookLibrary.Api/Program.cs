@@ -7,6 +7,7 @@ using BookLibrary.Infrastructure.Repository;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using BookLibrary.Core.Profiles;
+using BookLibrary.Api.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,7 +42,7 @@ builder.Services.AddAutoMapper(cfg =>
 
 var app = builder.Build();
 
-app.UseMiddleware<BookLibrary.Api.Middleware.GlobalExceptionHandlingMiddleware>();
+app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

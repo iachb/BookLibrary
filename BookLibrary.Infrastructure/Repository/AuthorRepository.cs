@@ -2,6 +2,7 @@
 using BookLibrary.Core.Entities;
 using BookLibrary.Core.Interfaces.Repository;
 using BookLibrary.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace BookLibrary.Infrastructure.Repository
 {
@@ -16,7 +17,9 @@ namespace BookLibrary.Infrastructure.Repository
 
         public async Task<IReadOnlyList<TAuthor>> GetAllAuthorsAsync(CancellationToken cancellationToken = default)
         {
-            return await Task.FromResult(_context.Author.ToList());
+            return await _context.Author
+                .AsNoTracking()
+                .ToListAsync(cancellationToken);
         }
 
         public async Task<TAuthor?> GetAuthorByIdAsync(int id,  CancellationToken cancellationToken = default)

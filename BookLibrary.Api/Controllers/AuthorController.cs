@@ -3,6 +3,7 @@ using BookLibrary.Api.Models.Author;
 using BookLibrary.Core.Interfaces;
 using BookLibrary.Core.Models.Authors;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace BookLibrary.Api.Controllers
 {
@@ -21,9 +22,10 @@ namespace BookLibrary.Api.Controllers
 
         // GET: api/<AuthorController>
         [HttpGet]
-        public IEnumerable<string> Get()
+        public async Task<IReadOnlyList<AuthorDTO>> Get(CancellationToken cancellationToken)
         {
-            return new string[] { "value1", "value2" };
+            var authors = await _authorService.GetAllAuthors(cancellationToken);
+            return _mapper.Map<IReadOnlyList<AuthorDTO>>(authors);
         }
 
         // GET api/<AuthorController>/5

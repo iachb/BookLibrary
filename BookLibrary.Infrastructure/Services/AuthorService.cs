@@ -3,6 +3,8 @@ using BookLibrary.Core.Entities;
 using BookLibrary.Core.Interfaces;
 using BookLibrary.Core.Interfaces.Repository;
 using BookLibrary.Core.Models.Authors;
+using BookLibrary.Core.Models.Books;
+using BookLibrary.Infrastructure.Repository;
 
 namespace BookLibrary.Infrastructure.Services
 {
@@ -15,6 +17,12 @@ namespace BookLibrary.Infrastructure.Services
         {
             this._authorRepository = authorRepository;
             this._mapper = mapper;
+        }
+
+        public async Task<IReadOnlyList<AuthorItem>> GetAllAuthors(CancellationToken cancellationToken = default)
+        {
+            var authors = await _authorRepository.GetAllAuthorsAsync(cancellationToken);
+            return _mapper.Map<IReadOnlyList<AuthorItem>>(authors);
         }
 
         public async Task<AuthorItem> CreateAuthorAsync(AuthorItem item, CancellationToken cancellationToken = default)
