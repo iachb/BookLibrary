@@ -83,5 +83,20 @@ namespace BookLibrary.Infrastructure.Services
             await _authorRepository.SaveChangesAsync(cancellationToken);
             return _mapper.Map<AuthorItem>(existingAuthor);
         }
+
+        public async Task DeleteAuthorAsync(int id, CancellationToken cancellationToken = default)
+        {
+            if (id <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(id), "Id must be greater than zero.");
+            }
+            var author = await _authorRepository.GetAuthorByIdAsync(id, cancellationToken);
+            if(author == null)
+            {
+                throw new KeyNotFoundException($"Author with id '{id}' not found.");
+            }
+            await _authorRepository.DeleteAuthorByIdAsync(id, cancellationToken);
+            await _authorRepository.SaveChangesAsync(cancellationToken);
+        }
     }
 }

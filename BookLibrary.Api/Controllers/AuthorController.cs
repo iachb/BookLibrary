@@ -60,8 +60,10 @@ namespace BookLibrary.Api.Controllers
 
         // DELETE api/<AuthorController>/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public async Task<ActionResult> Delete([FromRoute]int id, CancellationToken cancellationToken)
         {
+            await _authorService.DeleteAuthorAsync(id, cancellationToken);
+            return NoContent();
         }
     }
 }
