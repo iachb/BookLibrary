@@ -9,6 +9,6 @@ namespace BookLibrary.Api.Models.Books
         [Required]
         public DateTime PublishedDate { get; set; }
         [Required]
-        public string? AuthorName { get; set; } = string.Empty;
+        public int? AuthorId { get; set; } = null!;
     }
 }

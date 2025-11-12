@@ -78,9 +78,9 @@ namespace BookLibrary.Infrastructure.Services
                     throw new InvalidOperationException($"A book with the title '{book.Title}' already exists.");
             }
 
-            // Validar FK (implementa método Exists en repositorio de autor si procede)
-            // if (!await _authorRepository.ExistsAsync(book.AuthorId, cancellationToken))
-            //     throw new InvalidOperationException($"Author '{book.AuthorId}' does not exist.");
+            var author = await _authorRepository.GetAuthorByIdAsync(book.AuthorId, cancellationToken);
+            if (author is null)
+                throw new InvalidOperationException($"Author with Id {book.AuthorId} not found.");
 
             entity.Title = book.Title;
             entity.PublishedDate = book.PublishedDate;
