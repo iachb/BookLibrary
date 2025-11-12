@@ -22,7 +22,7 @@ namespace BookLibrary.Api.Controllers
 
         // GET: api/<AuthorController>
         [HttpGet]
-        public async Task<IReadOnlyList<AuthorDTO>> Get(CancellationToken cancellationToken)
+        public async Task<IReadOnlyList<AuthorDTO>> GetAllAuthors(CancellationToken cancellationToken)
         {
             var authors = await _authorService.GetAllAuthorsAsync(cancellationToken);
             return _mapper.Map<IReadOnlyList<AuthorDTO>>(authors);
@@ -30,7 +30,7 @@ namespace BookLibrary.Api.Controllers
 
         // GET api/<AuthorController>/5
         [HttpGet("{id}")]
-        public async Task<AuthorDTO> Get([FromRoute] int id, CancellationToken cancellationToken)
+        public async Task<AuthorDTO> GetAuthor([FromRoute] int id, CancellationToken cancellationToken)
         {
             var author = await _authorService.GetAuthorByIdAsync(id, cancellationToken);
             return _mapper.Map<AuthorDTO>(author);
@@ -47,7 +47,7 @@ namespace BookLibrary.Api.Controllers
 
         // PUT api/<AuthorController>/5
         [HttpPut("{id}")]
-        public async Task<ActionResult<AuthorDTO>> Put(int id, [FromBody]UpdateAuthorDTO dto, CancellationToken cancellationToken)
+        public async Task<ActionResult<AuthorDTO>> UpdateAuthor(int id, [FromBody]UpdateAuthorDTO dto, CancellationToken cancellationToken)
         {
             if(!ModelState.IsValid)
             {
@@ -60,7 +60,7 @@ namespace BookLibrary.Api.Controllers
 
         // DELETE api/<AuthorController>/5
         [HttpDelete("{id}")]
-        public async Task<ActionResult> Delete([FromRoute]int id, CancellationToken cancellationToken)
+        public async Task<ActionResult> DeleteAuthor([FromRoute]int id, CancellationToken cancellationToken)
         {
             await _authorService.DeleteAuthorAsync(id, cancellationToken);
             return NoContent();

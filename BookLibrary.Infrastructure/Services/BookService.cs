@@ -9,11 +9,13 @@ namespace BookLibrary.Infrastructure.Services
     public class BookService : IBookService
     {
         private readonly IBookRepository _bookRepository;
+        private readonly IAuthorRepository _authorRepository;
         private readonly IMapper _mapper;
-        public BookService(IBookRepository bookRepository, IMapper mapper)
+        public BookService(IBookRepository bookRepository, IMapper mapper, IAuthorRepository authorRepository)
         {
             _bookRepository = bookRepository;
             _mapper = mapper;
+            _authorRepository = authorRepository;
         }
 
         public async Task<IReadOnlyList<BookItem>> GetAllBooksAsync (CancellationToken cancellationToken)
@@ -28,17 +30,37 @@ namespace BookLibrary.Infrastructure.Services
             return _mapper.Map<BookItem>(book);
         }
 
-        public async Task<BookItem> CreateBookAsync(BookItem book, CancellationToken cancellationToken)
+        public async Task<BookItem> CreateBookAsync(BookItem book, CancellationToken cancellationToken = default)
         {
-            var bookEntity = _mapper.Map<TBook>(book);
-            var existingBook = await _bookRepository.GetBookByTitleAsync(bookEntity.Title, cancellationToken);
-            if (existingBook != null)
-            {
-                throw new InvalidOperationException($"A book with the title '{book.Title}' already exists.");
-            }
-            var createdBook = _bookRepository.AddBookAsync(bookEntity, cancellationToken);
+            if (book is null)
+                throw new ArgumentNullException(nameof(book));
+
+            var normalizedTitle = book.Title?.Trim();
+            if (string.IsNullOrWhiteSpace(normalizedTitle))
+                throw new ArgumentException("Title is required.", nameof(book.Title));
+
+            if (book.AuthorId <= 0)
+                throw new ArgumentException("AuthorId has to be a positive integer.", nameof(book.AuthorId));
+
+            var author = await _authorRepository.GetAuthorByIdAsync(book.AuthorId, cancellationToken);
+            if (author is null)
+                throw new InvalidOperationException($"Author with Id {book.AuthorId} not found.");
+
+            var existing = await _bookRepository.GetBookByTitleAsync(normalizedTitle!, cancellationToken);
+            if (existing != null)
+                throw new InvalidOperationException($"A book with the title '{normalizedTitle}' already exists.");
+
+            var entity = _mapper.Map<TBook>(book);
+            entity.Title = normalizedTitle!;
+            author.Books.Add(entity);
+
+            await _bookRepository.AddBookAsync(entity, cancellationToken);
+
             await _bookRepository.SaveChangesAsync(cancellationToken);
-            return _mapper.Map<BookItem>(createdBook);
+
+            await _bookRepository.LoadAuthorAsync(entity, cancellationToken);
+
+            return _mapper.Map<BookItem>(entity);
         }
 
         public async Task<BookItem> UpdateBookAsync(int id, BookItem book, CancellationToken cancellationToken)

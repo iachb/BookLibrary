@@ -8,7 +8,9 @@ namespace BookLibrary.Api.Profiles
     {
         public AuthorProfile()
         {
-            CreateMap<AuthorItem, AuthorDTO>().ReverseMap();
+            CreateMap<AuthorItem, AuthorDTO>()
+                .ForMember(dest => dest.BookTitles, opt => opt.MapFrom(src => src.Books.Select(b => b.Title).ToList()))
+                .ReverseMap();
             CreateMap<AuthorItem, CreateAuthorRequestDTO>().ReverseMap();
             CreateMap<AuthorItem, UpdateAuthorDTO>().ReverseMap();
         }

@@ -18,13 +18,16 @@ namespace BookLibrary.Infrastructure.Repository
         public async Task<IReadOnlyList<TAuthor>> GetAllAuthorsAsync(CancellationToken cancellationToken = default)
         {
             return await _context.Author
+                .Include(a => a.Books)
                 .AsNoTracking()
                 .ToListAsync(cancellationToken);
         }
 
         public async Task<TAuthor?> GetAuthorByIdAsync(int id,  CancellationToken cancellationToken = default)
         {
-            return await _context.Author.FindAsync(new object?[] { id }, cancellationToken);
+            return await _context.Author
+                .Include(a => a.Books)
+                .FirstOrDefaultAsync(b => b.Id == id, cancellationToken);
         }
 
         public async Task<TAuthor?> GetAuthorByNameAsync(string name, CancellationToken cancellationToken = default)
