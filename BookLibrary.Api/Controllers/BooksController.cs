@@ -37,7 +37,7 @@ namespace BookLibrary.Api.Controllers
             {
                 return NotFound();
             }
-            return _mapper.Map<BookDTO>(book);
+            return Ok(_mapper.Map<BookDTO>(book));
         }
 
         // POST api/<BooksController>
