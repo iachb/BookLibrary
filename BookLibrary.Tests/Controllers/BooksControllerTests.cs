@@ -2,6 +2,7 @@
 using BookLibrary.Api.Controllers;
 using BookLibrary.Api.Models.Books;
 using BookLibrary.Core.Interfaces;
+using BookLibrary.Core.Models.Authors;
 using BookLibrary.Core.Models.Books;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
@@ -106,6 +107,70 @@ namespace BookLibrary.Tests.Controllers
             // Assert
             var notFound = Assert.IsType<NotFoundResult>(result.Result);
             Assert.Equal(404, notFound.StatusCode);
+        }
+
+        [Fact]
+        public async Task CreateBook_ReturnBookDTO()
+        {
+            // Arrange
+            var serviceMock = new Mock<IBookService>();
+            var mapperMock = new Mock<IMapper>();
+            var cancellationToken = CancellationToken.None;
+
+            var requestDto = new CreateBookRequestDTO
+            {
+                Title = "New Book",
+                PublishedDate = DateTime.UtcNow,
+                AuthorId = 2
+            };
+
+            var mappedEntity = new BookItem
+            {
+                Title = requestDto.Title,
+                PublishedDate = requestDto.PublishedDate,
+                AuthorId = requestDto.AuthorId
+            };
+
+            var createdEntity = new BookItem
+            {
+                Id = 10,
+                Title = requestDto.Title,
+                PublishedDate = requestDto.PublishedDate,
+                AuthorId = requestDto.AuthorId,
+                Author = new AuthorItem { Name = "Author", BirthDate = DateTime.UtcNow }
+            };
+
+            var mappedDto = new BookDTO
+            {
+                Id = createdEntity.Id,
+                Title = createdEntity.Title,
+                PublishedDate = createdEntity.PublishedDate,
+                AuthorName = createdEntity.Author.Name
+            };
+
+            mapperMock.Setup(m => m.Map<BookItem>(requestDto)).Returns(mappedEntity);
+            serviceMock.Setup(s => s.CreateBookAsync(mappedEntity, cancellationToken)).ReturnsAsync(createdEntity);
+            mapperMock.Setup(m => m.Map<BookDTO>(createdEntity)).Returns(mappedDto);
+            // The controller maps again (unnecessary) so allow mapping BookDTO -> BookDTO
+            mapperMock.Setup(m => m.Map<BookDTO>(mappedDto)).Returns(mappedDto);
+
+            var controller = new BooksController(serviceMock.Object, mapperMock.Object);
+
+            // Act
+            var result = await controller.CreateBook(requestDto, cancellationToken);
+
+            // Assert
+            var created = Assert.IsType<CreatedAtActionResult>(result.Result);
+            Assert.Equal(201, created.StatusCode);
+            Assert.Equal(nameof(BooksController.GetBook), created.ActionName);
+            Assert.Equal(mappedDto.Id, created.RouteValues!["id"]);
+            var dto = Assert.IsType<BookDTO>(created.Value);
+            Assert.Equal(mappedDto.Id, dto.Id);
+            Assert.Equal(mappedDto.Title, dto.Title);
+
+            mapperMock.Verify(m => m.Map<BookItem>(requestDto), Times.Once);
+            serviceMock.Verify(s => s.CreateBookAsync(mappedEntity, cancellationToken), Times.Once);
+            mapperMock.Verify(m => m.Map<BookDTO>(createdEntity), Times.Once);
         }
     }
 }
