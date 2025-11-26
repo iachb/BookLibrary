@@ -45,7 +45,10 @@ namespace BookLibrary.Tests.Controllers
             var result = await controller.GetAllBooks(cancellationToken);
 
             // Assert
-            Assert.Equal(mappedDtos, result);
+            var ok = Assert.IsType<OkObjectResult>(result.Result);
+            Assert.Equal(200, ok.StatusCode);
+            Assert.Equal(mappedDtos, ok.Value);
+
             serviceMock.Verify(s => s.GetAllBooksAsync(cancellationToken), Times.Once);
             mapperMock.Verify(m => m.Map<IReadOnlyList<BookDTO>>(bookItems), Times.Once);
         }
@@ -59,7 +62,6 @@ namespace BookLibrary.Tests.Controllers
             var cancellationToken = CancellationToken.None;
 
             var bookItem = new BookItem { Id = 1, Title = "Title1" };
-
             var mappedDTO = new BookDTO { Id = 1, Title = "Title1" };
 
             serviceMock
@@ -78,8 +80,32 @@ namespace BookLibrary.Tests.Controllers
             // Assert
             var ok = Assert.IsType<OkObjectResult>(result.Result);
             Assert.Equal(200, ok.StatusCode);
+
             var dto = Assert.IsType<BookDTO>(ok.Value);
             Assert.Equal(mappedDTO.Id, dto.Id);
+        }
+
+        [Fact]
+        public async Task GetBook_ReturnNotFound()
+        {
+            // Arrange
+            var serviceMock = new Mock<IBookService>();
+            var mapperMock = new Mock<IMapper>();
+            var cancellationToken = CancellationToken.None;
+            var bookIdInRoute = 2;
+
+            serviceMock
+                .Setup(s => s.GetBookByIdAsync(bookIdInRoute, cancellationToken))
+                .ReturnsAsync((BookItem?)null);
+
+            var controller = new BooksController(serviceMock.Object, mapperMock.Object);
+
+            // Act
+            var result = await controller.GetBook(bookIdInRoute, cancellationToken);
+
+            // Assert
+            var notFound = Assert.IsType<NotFoundResult>(result.Result);
+            Assert.Equal(404, notFound.StatusCode);
         }
     }
 }

@@ -22,10 +22,11 @@ namespace BookLibrary.Api.Controllers
 
         // GET: api/<BooksController>
         [HttpGet]
-        public async Task<IReadOnlyList<BookDTO>> GetAllBooks(CancellationToken cancellationToken)
+        public async Task<ActionResult<IReadOnlyList<BookDTO>>> GetAllBooks(CancellationToken cancellationToken)
         {
             var books = await _bookService.GetAllBooksAsync(cancellationToken);
-            return _mapper.Map<IReadOnlyList<BookDTO>>(books);
+            var dtos = _mapper.Map<IReadOnlyList<BookDTO>>(books);
+            return Ok(dtos);
         }
 
         // GET api/<BooksController>/5
