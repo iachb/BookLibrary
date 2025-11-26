@@ -8,8 +8,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using BookLibrary.Core.Profiles;
 using BookLibrary.Api.Middleware;
+using Microsoft.Extensions.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure logging levels (optional minimal setup)
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
 
 // DB connection
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -44,15 +50,37 @@ var app = builder.Build();
 
 app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 
-// Configure the HTTP request pipeline.
+// Development-only request logging middleware
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(options =>
+    app.Logger.LogInformation("Starting BookLibrary API in Development environment");
+
+    app.Use(async (context, next) =>
     {
-        options.SwaggerEndpoint("/swagger/v1/swagger.json", "BookLibrary");
+        var logger = context.RequestServices
+            .GetRequiredService<ILoggerFactory>()
+            .CreateLogger("RequestLogging");
+
+        logger.LogInformation("Incoming request: {Method} {Path}", context.Request.Method, context.Request.Path);
+
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        try
+        {
+            await next();
+        }
+        finally
+        {
+            sw.Stop();
+            logger.LogInformation("Completed request: {StatusCode} in {Elapsed} ms", context.Response.StatusCode, sw.ElapsedMilliseconds);
+        }
     });
 }
+
+app.UseSwagger();
+app.UseSwaggerUI(options =>
+{
+    options.SwaggerEndpoint("/swagger/v1/swagger.json", "BookLibrary");
+});
 
 // Add CORS
 app.UseCors(policy =>
