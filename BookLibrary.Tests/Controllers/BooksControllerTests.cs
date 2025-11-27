@@ -93,16 +93,16 @@ namespace BookLibrary.Tests.Controllers
             var serviceMock = new Mock<IBookService>();
             var mapperMock = new Mock<IMapper>();
             var cancellationToken = CancellationToken.None;
-            var bookIdInRoute = 2;
+            var bookIdFromRoute = 2;
 
             serviceMock
-                .Setup(s => s.GetBookByIdAsync(bookIdInRoute, cancellationToken))
+                .Setup(s => s.GetBookByIdAsync(bookIdFromRoute, cancellationToken))
                 .ReturnsAsync((BookItem?)null);
 
             var controller = new BooksController(serviceMock.Object, mapperMock.Object);
 
             // Act
-            var result = await controller.GetBook(bookIdInRoute, cancellationToken);
+            var result = await controller.GetBook(bookIdFromRoute, cancellationToken);
 
             // Assert
             var notFound = Assert.IsType<NotFoundResult>(result.Result);
@@ -197,6 +197,55 @@ namespace BookLibrary.Tests.Controllers
             var problem = Assert.IsType<ValidationProblemDetails>(objectResult.Value);
             serviceMock.Verify(s => s.CreateBookAsync(It.IsAny<BookItem>(), It.IsAny<CancellationToken>()), Times.Never);
             mapperMock.Verify(m => m.Map<BookItem>(It.IsAny<CreateBookRequestDTO>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task UpdateBook_ReturnsOk()
+        {
+            // Arrange
+            var serviceMock = new Mock<IBookService>();
+            var mapperMock = new Mock<IMapper>();
+            var cancellationToken = CancellationToken.None;
+
+            var requestId = 2;
+            var requestDto = new UpdateBookDTO
+            {
+                Title = "New Title",
+                PublishedDate = DateTime.UtcNow,
+                AuthorId = 2
+            };
+
+            var mappedEntity = new BookItem
+            {
+                Title = requestDto.Title,
+                PublishedDate = requestDto.PublishedDate,
+                AuthorId = (int)requestDto.AuthorId,
+                Author = new AuthorItem { Name = "Author", BirthDate = DateTime.UtcNow }
+            };
+
+            var mappedDto = new BookDTO
+            {
+                Id = requestId,
+                Title = mappedEntity.Title,
+                PublishedDate = mappedEntity.PublishedDate,
+                AuthorName = mappedEntity.Author.Name
+            };
+
+            mapperMock.Setup(m => m.Map<BookItem>(requestDto)).Returns(mappedEntity);
+            serviceMock.Setup(s => s.UpdateBookAsync(requestId, mappedEntity, cancellationToken)).ReturnsAsync(mappedEntity);
+            mapperMock.Setup(m => m.Map<BookDTO>(mappedEntity)).Returns(mappedDto);
+
+            var controller = new BooksController(serviceMock.Object, mapperMock.Object);
+
+            // Act
+            var result = await controller.UpdateBook(requestId, requestDto, cancellationToken);
+
+            // Assert
+            var created = Assert.IsType<OkObjectResult>(result);
+            Assert.Equal(200, created.StatusCode);
+         
+            mapperMock.Verify(m => m.Map<BookItem>(requestDto), Times.Once);
+            serviceMock.Verify(s => s.UpdateBookAsync(requestId, mappedEntity, cancellationToken), Times.Once);
         }
     }
 }
