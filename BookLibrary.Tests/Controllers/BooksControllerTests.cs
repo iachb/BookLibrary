@@ -247,5 +247,34 @@ namespace BookLibrary.Tests.Controllers
             mapperMock.Verify(m => m.Map<BookItem>(requestDto), Times.Once);
             serviceMock.Verify(s => s.UpdateBookAsync(requestId, mappedEntity, cancellationToken), Times.Once);
         }
+
+        [Fact]
+        public async Task UpdateBook_InvalidModel_ReturnsValidationProblem()
+        {
+            // Arrange
+            var serviceMock = new Mock<IBookService>();
+            var mapperMock = new Mock<IMapper>();
+            var cancellationToken = CancellationToken.None;
+
+            var controller = new BooksController(serviceMock.Object, mapperMock.Object);
+            controller.ModelState.AddModelError("Title", "The Title field is required.");
+
+            int requestId = 2;
+            var requestDto = new UpdateBookDTO
+            {
+                Title = "New Title",
+                PublishedDate = DateTime.UtcNow,
+                AuthorId = 2
+            };
+
+            // Act
+            var result = await controller.UpdateBook(requestId, requestDto, cancellationToken);
+
+            // Assert
+            var objectResult = Assert.IsType<ObjectResult>(result);
+            var problem = Assert.IsType<ValidationProblemDetails>(objectResult.Value);
+            serviceMock.Verify(s => s.UpdateBookAsync(requestId, It.IsAny<BookItem>(), It.IsAny<CancellationToken>()), Times.Never);
+            mapperMock.Verify(m => m.Map<BookItem>(It.IsAny<UpdateBookDTO>()), Times.Never);
+        }
     }
 }
