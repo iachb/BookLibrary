@@ -66,9 +66,9 @@ namespace BookLibrary.Api.Controllers
 
         // DELETE api/<BooksController>/5
         [HttpDelete("{id}")]
-        public async Task<ActionResult> Delete(int id)
+        public async Task<ActionResult> DeleteBook(int id, CancellationToken cancellationToken)
         {
-            await _bookService.DeleteBookById(id, CancellationToken.None);
+            await _bookService.DeleteBookById(id, cancellationToken);
             return NoContent();
         }
     }
