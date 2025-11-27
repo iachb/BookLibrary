@@ -14,7 +14,7 @@ namespace BookLibrary.Api.Controllers
         public readonly IMapper _mapper;
         public readonly IAuthorService _authorService;
 
-        public AuthorController(IMapper mapper, IAuthorService authorService)
+        public AuthorController(IAuthorService authorService, IMapper mapper)
         {
             this._mapper = mapper;
             this._authorService = authorService;
@@ -22,10 +22,10 @@ namespace BookLibrary.Api.Controllers
 
         // GET: api/<AuthorController>
         [HttpGet]
-        public async Task<IReadOnlyList<AuthorDTO>> GetAllAuthors(CancellationToken cancellationToken)
+        public async Task<ActionResult<IReadOnlyList<AuthorDTO>>> GetAllAuthors(CancellationToken cancellationToken)
         {
             var authors = await _authorService.GetAllAuthorsAsync(cancellationToken);
-            return _mapper.Map<IReadOnlyList<AuthorDTO>>(authors);
+            return Ok(_mapper.Map<IReadOnlyList<AuthorDTO>>(authors));
         }
 
         // GET api/<AuthorController>/5
