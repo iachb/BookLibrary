@@ -160,5 +160,39 @@ namespace BookLibrary.Tests.Controllers
             serviceMock.Verify(s => s.CreateAuthorAsync(It.IsAny<AuthorItem>(), cancellationToken), Times.Never);
             mapperMock.Verify(m => m.Map<AuthorItem>(It.IsAny<CreateAuthorRequestDTO>()), Times.Never);
         }
+
+        [Fact]
+        public async Task UpdateAuthor_ReturnsUpdatedAuthorDTO()
+        {
+            // Arrange
+            var serviceMock = new Mock<IAuthorService>();
+            var mapperMock = new Mock<IMapper>();
+            var cancellationToken = new CancellationToken();
+
+            var authorId = 1;
+
+            var updateDTO = new UpdateAuthorDTO { Name = "Updated Author", BirthDate = DateTime.UtcNow };
+            var authorItem = new AuthorItem { Id = authorId, Name = "Updated Author", BirthDate = DateTime.UtcNow };
+            var updatedAuthorItem = new AuthorItem { Id = authorId, Name = "Updated Author" };
+            var updatedAuthorDTO = new AuthorDTO { Id = authorId, Name = "Updated Author" };
+
+            mapperMock.Setup(m => m.Map<AuthorItem>(updateDTO)).Returns(authorItem);
+            serviceMock.Setup(s => s.UpdateAuthorAsync(authorId, authorItem, cancellationToken))
+                .ReturnsAsync(updatedAuthorItem);
+            mapperMock.Setup(m => m.Map<AuthorDTO>(updatedAuthorItem)).Returns(updatedAuthorDTO);
+
+            var controller = new AuthorController(serviceMock.Object, mapperMock.Object);
+
+            // Act
+            var request = await controller.UpdateAuthor(authorId, updateDTO, cancellationToken);
+
+            // Assert
+            var okResult = Assert.IsType<ActionResult<AuthorDTO>>(request);
+            var ok = Assert.IsType<OkObjectResult>(okResult.Result);
+            Assert.Equal(200, ok.StatusCode);
+            serviceMock.Verify(s => s.UpdateAuthorAsync(authorId, authorItem, cancellationToken), Times.Once);
+            mapperMock.Verify(m => m.Map<AuthorItem>(updateDTO), Times.Once);
+            mapperMock.Verify(m => m.Map<AuthorDTO>(updatedAuthorItem), Times.Once);
+        }
     }
 }
