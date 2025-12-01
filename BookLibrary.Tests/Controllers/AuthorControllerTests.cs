@@ -30,7 +30,7 @@ namespace BookLibrary.Tests.Controllers
             {
                 new AuthorDTO { Id = 1, Name = "Author 1" },
                 new AuthorDTO { Id = 2, Name = "Author 2" }
-            };  
+            };
 
             serviceMock.Setup(s => s.GetAllAuthorsAsync(cancellationToken))
                 .ReturnsAsync(authorItems);
@@ -82,6 +82,30 @@ namespace BookLibrary.Tests.Controllers
 
             serviceMock.Verify(s => s.GetAuthorByIdAsync(authorId, cancellationToken), Times.Once);
             mapperMock.Verify(m => m.Map<AuthorDTO>(authorItem), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetAuthor_ReturnNotFound()
+        {
+            // Arrange
+            var serviceMock = new Mock<IAuthorService>();
+            var mapperMock = new Mock<IMapper>();
+            var cancellationToken = new CancellationToken();
+            var authorId = 1;
+
+            serviceMock.Setup(s => s.GetAuthorByIdAsync(authorId, cancellationToken))
+                .ReturnsAsync((AuthorItem?)null);
+
+            var controller = new AuthorController(serviceMock.Object, mapperMock.Object);
+
+            // Act
+            var request = await controller.GetAuthor(authorId, cancellationToken);
+
+            // Assert
+            var notFoundResult = Assert.IsType<ActionResult<AuthorDTO>>(request);
+            Assert.IsType<NotFoundResult>(notFoundResult.Result);
+            serviceMock.Verify(s => s.GetAuthorByIdAsync(authorId, cancellationToken), Times.Once);
+            mapperMock.Verify(m => m.Map<AuthorDTO>(It.IsAny<AuthorItem>()), Times.Never);
         }
 
     }
