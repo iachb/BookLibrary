@@ -217,5 +217,26 @@ namespace BookLibrary.Tests.Controllers
             serviceMock.Verify(s => s.UpdateAuthorAsync(It.IsAny<int>(), It.IsAny<AuthorItem>(), cancellationToken), Times.Never);
             mapperMock.Verify(m => m.Map<AuthorItem>(It.IsAny<UpdateAuthorDTO>()), Times.Never);
         }
+
+        [Fact]
+        public async Task DeleteAuthor_ReturnsNoContent()
+        {
+            // Arrange
+            var serviceMock = new Mock<IAuthorService>();
+            var mapperMock = new Mock<IMapper>();
+            var cancellationToken = new CancellationToken();
+            var authorId = 1;
+            serviceMock.Setup(s => s.DeleteAuthorAsync(authorId, cancellationToken))
+                .Returns(Task.CompletedTask);
+            var controller = new AuthorController(serviceMock.Object, mapperMock.Object);
+
+            // Act
+            var request = await controller.DeleteAuthor(authorId, cancellationToken);
+
+            // Assert
+            var noContentResult = Assert.IsType<NoContentResult>(request);
+            Assert.Equal(204, noContentResult.StatusCode);
+            serviceMock.Verify(s => s.DeleteAuthorAsync(authorId, cancellationToken), Times.Once);
+        }
     }
 }
