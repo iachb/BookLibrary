@@ -138,5 +138,27 @@ namespace BookLibrary.Tests.Controllers
             mapperMock.Verify(m => m.Map<AuthorItem>(createRequestDTO), Times.Once);
             mapperMock.Verify(m => m.Map<AuthorDTO>(createdAuthorItem), Times.Once);
         }
+
+        [Fact]
+        public async Task CreateAuthor_InvalidModel_ReturnValidationProblem()
+        {
+            // Arrange
+            var serviceMock = new Mock<IAuthorService>();
+            var mapperMock = new Mock<IMapper>();
+            var cancellationToken = new CancellationToken();
+
+            var controller = new AuthorController(serviceMock.Object, mapperMock.Object);
+            controller.ModelState.AddModelError("Name", "The Name field is required.");
+            var createRequestDTO = new CreateAuthorRequestDTO { BirthDate = DateTime.UtcNow };
+
+            // Act
+            var request = await controller.CreateAuthor(createRequestDTO, cancellationToken);
+
+            // Assert
+            var objectResult = Assert.IsType<ObjectResult>(request.Result);
+            var problem = Assert.IsType<ValidationProblemDetails>(objectResult.Value);
+            serviceMock.Verify(s => s.CreateAuthorAsync(It.IsAny<AuthorItem>(), cancellationToken), Times.Never);
+            mapperMock.Verify(m => m.Map<AuthorItem>(It.IsAny<CreateAuthorRequestDTO>()), Times.Never);
+        }
     }
 }
