@@ -44,9 +44,12 @@ namespace BookLibrary.Api.Controllers
         [HttpPost]
         public async Task<ActionResult<AuthorDTO>> CreateAuthor([FromBody] CreateAuthorRequestDTO request, CancellationToken cancellationToken)
         {
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
             var item = _mapper.Map<AuthorItem>(request);
             var createdAuthor = await _authorService.CreateAuthorAsync(item, cancellationToken);
-            return Ok(_mapper.Map<AuthorDTO>(createdAuthor));
+            var dto = _mapper.Map<AuthorDTO>(createdAuthor);
+            return CreatedAtAction(nameof(GetAuthor), new { id = dto.Id }, dto);
         }
 
         // PUT api/<AuthorController>/5

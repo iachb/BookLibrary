@@ -108,5 +108,35 @@ namespace BookLibrary.Tests.Controllers
             mapperMock.Verify(m => m.Map<AuthorDTO>(It.IsAny<AuthorItem>()), Times.Never);
         }
 
+        [Fact]
+        public async Task CreateAuthor_ReturnCreatedAuthorDTO()
+        {
+            // Arrange
+            var serviceMock = new Mock<IAuthorService>();
+            var mapperMock = new Mock<IMapper>();
+            var cancellationToken = new CancellationToken();
+
+            var createRequestDTO = new CreateAuthorRequestDTO { Name = "New Author", BirthDate = DateTime.UtcNow };
+            var authorItem = new AuthorItem { Id = 1, Name = "New Author", BirthDate = DateTime.UtcNow };
+            var createdAuthorItem = new AuthorItem { Id = 1, Name = "New Author" };
+            var createdAuthorDTO = new AuthorDTO { Id = 1, Name = "New Author" };
+
+            mapperMock.Setup(m => m.Map<AuthorItem>(createRequestDTO)).Returns(authorItem);
+            serviceMock.Setup(s => s.CreateAuthorAsync(authorItem, cancellationToken))
+                .ReturnsAsync(createdAuthorItem);
+            mapperMock.Setup(m => m.Map<AuthorDTO>(createdAuthorItem)).Returns(createdAuthorDTO);
+
+            var controller = new AuthorController(serviceMock.Object, mapperMock.Object);
+
+            // Act
+            var request = await controller.CreateAuthor(createRequestDTO, cancellationToken);
+
+            // Assert
+            var createdAtActionResult = Assert.IsType<CreatedAtActionResult>(request.Result);
+            Assert.Equal(201, createdAtActionResult.StatusCode);
+            serviceMock.Verify(s => s.CreateAuthorAsync(authorItem, cancellationToken), Times.Once);
+            mapperMock.Verify(m => m.Map<AuthorItem>(createRequestDTO), Times.Once);
+            mapperMock.Verify(m => m.Map<AuthorDTO>(createdAuthorItem), Times.Once);
+        }
     }
 }
