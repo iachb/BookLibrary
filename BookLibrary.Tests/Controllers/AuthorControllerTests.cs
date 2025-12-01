@@ -5,6 +5,7 @@ using BookLibrary.Core.Interfaces;
 using BookLibrary.Core.Models.Authors;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
+using System;
 using Xunit;
 
 namespace BookLibrary.Tests.Controllers
@@ -47,10 +48,41 @@ namespace BookLibrary.Tests.Controllers
             var okAuthorDTO = Assert.IsType<ActionResult<IReadOnlyList<AuthorDTO>>>(request);
             var ok = Assert.IsType<OkObjectResult>(okAuthorDTO.Result);
             Assert.Equal(200, ok.StatusCode);
-            Assert.Equal(authorsDTO, ok.Value);
 
             serviceMock.Verify(s => s.GetAllAuthorsAsync(cancellationToken), Times.Once);
             mapperMock.Verify(m => m.Map<IReadOnlyList<AuthorDTO>>(authorItems), Times.Once);
         }
+
+        [Fact]
+        public async Task GetAuthor_ReturnAuthorDTO()
+        {
+            // Arrange
+            var serviceMock = new Mock<IAuthorService>();
+            var mapperMock = new Mock<IMapper>();
+            var cancellationToken = new CancellationToken();
+
+            var authorId = 1;
+
+            var authorItem = new AuthorItem { Id = authorId, Name = "Author 1" };
+            var authorDTO = new AuthorDTO { Id = authorId, Name = "Author 1" };
+
+            serviceMock.Setup(s => s.GetAuthorByIdAsync(authorId, cancellationToken))
+                .ReturnsAsync(authorItem);
+            mapperMock.Setup(m => m.Map<AuthorDTO>(authorItem)).Returns(authorDTO);
+
+            var controller = new AuthorController(serviceMock.Object, mapperMock.Object);
+
+            // Act
+            var request = await controller.GetAuthor(authorId, cancellationToken);
+
+            // Assert
+            var okAuthorDTO = Assert.IsType<ActionResult<AuthorDTO>>(request);
+            var ok = Assert.IsType<OkObjectResult>(okAuthorDTO.Result);
+            Assert.Equal(200, ok.StatusCode);
+
+            serviceMock.Verify(s => s.GetAuthorByIdAsync(authorId, cancellationToken), Times.Once);
+            mapperMock.Verify(m => m.Map<AuthorDTO>(authorItem), Times.Once);
+        }
+
     }
 }

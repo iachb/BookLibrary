@@ -30,10 +30,14 @@ namespace BookLibrary.Api.Controllers
 
         // GET api/<AuthorController>/5
         [HttpGet("{id}")]
-        public async Task<AuthorDTO> GetAuthor([FromRoute] int id, CancellationToken cancellationToken)
+        public async Task<ActionResult<AuthorDTO>> GetAuthor([FromRoute] int id, CancellationToken cancellationToken)
         {
             var author = await _authorService.GetAuthorByIdAsync(id, cancellationToken);
-            return _mapper.Map<AuthorDTO>(author);
+            if(author == null)
+            {
+                return NotFound();
+            }
+            return Ok(_mapper.Map<AuthorDTO>(author));
         }
 
         // POST api/<AuthorController>
