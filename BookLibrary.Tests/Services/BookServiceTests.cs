@@ -85,5 +85,35 @@ namespace BookLibrary.Tests.Services
             repositoryBookMock.Verify(r => r.GetBookByIdAsync(1, cancellationToken), Times.Once);
             mapperMock.Verify(m => m.Map<BookItem>(tBook), Times.Once);
         }
+
+        [Fact]
+        public async Task GetBookById_ReturnsNull()
+        {
+            // Arrange
+            var repositoryBookMock = new Mock<IBookRepository>();
+            var mapperMock = new Mock<AutoMapper.IMapper>();
+            var mockAuthorRepository = new Mock<IAuthorRepository>();
+            var cancellationToken = new CancellationToken();
+
+            var tBook = new TBook { Id = 1, Title = "Test Book", AuthorId = 1 };
+            var bookItem = new BookItem { Id = 1, Title = "Test Book", AuthorId = 1 };
+
+            repositoryBookMock.Setup(r => r.GetBookByIdAsync(1, cancellationToken))
+                              .ReturnsAsync((TBook?)null);
+
+            var bookService = new BookService(
+                repositoryBookMock.Object,
+                mapperMock.Object,
+                mockAuthorRepository.Object
+            );
+
+            // Act
+            var result = await bookService.GetBookByIdAsync(1, cancellationToken);
+
+            // Assert
+            Assert.Null(result);
+            repositoryBookMock.Verify(r => r.GetBookByIdAsync(1, cancellationToken), Times.Once);
+            mapperMock.Verify(m => m.Map<BookItem>(tBook), Times.Never);
+        }
     }
 }
