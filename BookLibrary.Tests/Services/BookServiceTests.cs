@@ -281,5 +281,183 @@ namespace BookLibrary.Tests.Services
             
             Assert.Contains("already exists", exception.Message);
         }
+
+        [Fact]
+        public async Task UpdateBook_ReturnsBookItem()
+        {
+            // Arrange
+            var repositoryBookMock = new Mock<IBookRepository>();
+            var mapperMock = new Mock<IMapper>();
+            var repositoryAuthorMock = new Mock<IAuthorRepository>();
+            var cancellationToken = CancellationToken.None;
+            int bookId = 1;
+
+            var existingTBook = new TBook { Id = bookId, Title = "Old Title", AuthorId = 1 };
+            var updatedBookItem = new BookItem { Id = bookId, Title = "Updated Title", AuthorId = 2, PublishedDate = DateTime.UtcNow };
+            var author = new TAuthor { Id = 2, Name = "New Author", Books = new List<TBook>() };
+            var resultBookItem = new BookItem { Id = bookId, Title = "Updated Title", AuthorId = 2 };
+
+            repositoryBookMock.Setup(r => r.GetBookByIdAsync(bookId, cancellationToken))
+                              .ReturnsAsync(existingTBook);
+
+            repositoryBookMock.Setup(r => r.GetBookByTitleAsync("Updated Title", cancellationToken))
+                              .ReturnsAsync((TBook?)null);
+
+            repositoryAuthorMock.Setup(a => a.GetAuthorByIdAsync(2, cancellationToken))
+                                .ReturnsAsync(author);
+
+            repositoryBookMock.Setup(r => r.SaveChangesAsync(cancellationToken))
+                              .Returns(Task.CompletedTask)
+                              .Callback(() =>
+                              {
+                                  // Simulate ID assignment after save
+                                  existingTBook.Id = bookId;
+                              });
+
+            repositoryBookMock.Setup(r => r.LoadAuthorAsync(existingTBook, cancellationToken))
+                              .Returns(Task.CompletedTask)
+                              .Callback<TBook, CancellationToken>((book, ct) => book.Author = author);
+
+            mapperMock.Setup(m => m.Map<BookItem>(It.Is<TBook>(b => b.Id == bookId && b.Title == "Updated Title")))
+                      .Returns(resultBookItem);
+
+            var bookService = new BookService(
+                repositoryBookMock.Object,
+                mapperMock.Object,
+                repositoryAuthorMock.Object
+            );
+
+            // Act
+            var result = await bookService.UpdateBookAsync(bookId, updatedBookItem, cancellationToken);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(resultBookItem.Title, result.Title);
+            Assert.Equal(resultBookItem.AuthorId, result.AuthorId);
+            
+            // Verify the entity was updated
+            Assert.Equal("Updated Title", existingTBook.Title);
+            Assert.Equal(2, existingTBook.AuthorId);
+            Assert.Equal(updatedBookItem.PublishedDate, existingTBook.PublishedDate);
+
+            repositoryBookMock.Verify(r => r.GetBookByIdAsync(bookId, cancellationToken), Times.Once);
+            repositoryBookMock.Verify(r => r.GetBookByTitleAsync("Updated Title", cancellationToken), Times.Once);
+            repositoryAuthorMock.Verify(a => a.GetAuthorByIdAsync(2, cancellationToken), Times.Once);
+            repositoryBookMock.Verify(r => r.SaveChangesAsync(cancellationToken), Times.Once);
+            repositoryBookMock.Verify(r => r.LoadAuthorAsync(existingTBook, cancellationToken), Times.Once);
+            mapperMock.Verify(m => m.Map<BookItem>(It.IsAny<TBook>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task UpdateBook_ThrowsArgumentNullException_WhenBookIsNull()
+        {
+            // Arrange
+            var repositoryBookMock = new Mock<IBookRepository>();
+            var mapperMock = new Mock<IMapper>();
+            var repositoryAuthorMock = new Mock<IAuthorRepository>();
+
+            var bookService = new BookService(
+                repositoryBookMock.Object,
+                mapperMock.Object,
+                repositoryAuthorMock.Object
+            );
+
+            // Act & Assert
+            await Assert.ThrowsAsync<ArgumentNullException>(() =>
+                bookService.UpdateBookAsync(1, null!, CancellationToken.None));
+        }
+
+        [Fact]
+        public async Task UpdateBook_ThrowsInvalidOperationException_WhenBookNotFound()
+        {
+            // Arrange
+            var repositoryBookMock = new Mock<IBookRepository>();
+            var mapperMock = new Mock<IMapper>();
+            var repositoryAuthorMock = new Mock<IAuthorRepository>();
+            var cancellationToken = CancellationToken.None;
+
+            var bookItem = new BookItem { Id = 999, Title = "Title", AuthorId = 1 };
+
+            repositoryBookMock.Setup(r => r.GetBookByIdAsync(999, cancellationToken))
+                              .ReturnsAsync((TBook?)null);
+
+            var bookService = new BookService(
+                repositoryBookMock.Object,
+                mapperMock.Object,
+                repositoryAuthorMock.Object
+            );
+
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                bookService.UpdateBookAsync(999, bookItem, cancellationToken));
+
+            Assert.Contains("No book found with ID '999'", exception.Message);
+        }
+
+        [Fact]
+        public async Task UpdateBook_ThrowsInvalidOperationException_WhenTitleAlreadyExists()
+        {
+            // Arrange
+            var repositoryBookMock = new Mock<IBookRepository>();
+            var mapperMock = new Mock<IMapper>();
+            var repositoryAuthorMock = new Mock<IAuthorRepository>();
+            var cancellationToken = CancellationToken.None;
+
+            var existingTBook = new TBook { Id = 1, Title = "Old Title", AuthorId = 1 };
+            var anotherTBook = new TBook { Id = 2, Title = "New Title", AuthorId = 1 };
+            var updatedBookItem = new BookItem { Id = 1, Title = "New Title", AuthorId = 1 };
+
+            repositoryBookMock.Setup(r => r.GetBookByIdAsync(1, cancellationToken))
+                              .ReturnsAsync(existingTBook);
+
+            repositoryBookMock.Setup(r => r.GetBookByTitleAsync("New Title", cancellationToken))
+                              .ReturnsAsync(anotherTBook);
+
+            var bookService = new BookService(
+                repositoryBookMock.Object,
+                mapperMock.Object,
+                repositoryAuthorMock.Object
+            );
+
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                bookService.UpdateBookAsync(1, updatedBookItem, cancellationToken));
+
+            Assert.Contains("already exists", exception.Message);
+        }
+
+        [Fact]
+        public async Task UpdateBook_ThrowsInvalidOperationException_WhenAuthorNotFound()
+        {
+            // Arrange
+            var repositoryBookMock = new Mock<IBookRepository>();
+            var mapperMock = new Mock<IMapper>();
+            var repositoryAuthorMock = new Mock<IAuthorRepository>();
+            var cancellationToken = CancellationToken.None;
+
+            var existingTBook = new TBook { Id = 1, Title = "Title", AuthorId = 1 };
+            var updatedBookItem = new BookItem { Id = 1, Title = "Title", AuthorId = 999 };
+
+            repositoryBookMock.Setup(r => r.GetBookByIdAsync(1, cancellationToken))
+                              .ReturnsAsync(existingTBook);
+
+            repositoryBookMock.Setup(r => r.GetBookByTitleAsync("Title", cancellationToken))
+                              .ReturnsAsync((TBook?)null);
+
+            repositoryAuthorMock.Setup(a => a.GetAuthorByIdAsync(999, cancellationToken))
+                                .ReturnsAsync((TAuthor?)null);
+
+            var bookService = new BookService(
+                repositoryBookMock.Object,
+                mapperMock.Object,
+                repositoryAuthorMock.Object
+            );
+
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                bookService.UpdateBookAsync(1, updatedBookItem, cancellationToken));
+
+            Assert.Contains("Author with Id 999 not found", exception.Message);
+        }
     }
 }
