@@ -32,10 +32,9 @@ namespace BookLibrary.Infrastructure.Repository
             return await _context.Books.Include(b => b.Author).FirstOrDefaultAsync(b => b.Id == id, cancellationToken);
         }
 
-        public async Task<TBook> AddBookAsync(TBook book, CancellationToken cancellationToken = default)
+        public async Task AddBookAsync(TBook book, CancellationToken cancellationToken = default)
         {
             await _context.Books.AddAsync(book, cancellationToken);
-            return book;
         }
 
         public async Task DeleteBookById(TBook book, CancellationToken cancellationToken = default)
