@@ -1,6 +1,6 @@
 ﻿using BookLibrary.Core.Entities;
-using BookLibrary.Infrastructure.Data;
 using BookLibrary.Core.Interfaces.Repository;
+using BookLibrary.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace BookLibrary.Infrastructure.Repository
@@ -42,9 +42,9 @@ namespace BookLibrary.Infrastructure.Repository
             _context.Books.Remove(book);
             await Task.CompletedTask;
         }
-        public async Task LoadAuthorAsync(TBook book, CancellationToken ct = default)
+        public async Task LoadAuthorAsync(TBook book, CancellationToken cancellationToken = default)
         {
-            await _context.Entry(book).Reference(b => b.Author).LoadAsync(ct);
+            await _context.Entry(book).Reference(b => b.Author).LoadAsync(cancellationToken);
         }
 
         public async Task SaveChangesAsync(CancellationToken cancellationToken = default)

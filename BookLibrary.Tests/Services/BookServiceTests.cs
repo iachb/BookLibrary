@@ -4,7 +4,6 @@ using BookLibrary.Core.Interfaces.Repository;
 using BookLibrary.Core.Models.Books;
 using BookLibrary.Infrastructure.Services;
 using Moq;
-using System;
 using Xunit;
 
 namespace BookLibrary.Tests.Services

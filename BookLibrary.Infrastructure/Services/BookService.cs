@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
-using BookLibrary.Core.Interfaces;
 using BookLibrary.Core.Entities;
+using BookLibrary.Core.Interfaces;
 using BookLibrary.Core.Interfaces.Repository;
 using BookLibrary.Core.Models.Books;
 
