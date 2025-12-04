@@ -1,10 +1,11 @@
-﻿using Xunit;
-using Moq;
-using BookLibrary.Infrastructure.Services;
+﻿using AutoMapper;
+using BookLibrary.Core.Entities;
 using BookLibrary.Core.Interfaces.Repository;
 using BookLibrary.Core.Models.Books;
-using BookLibrary.Core.Entities;
-using AutoMapper;
+using BookLibrary.Infrastructure.Services;
+using Moq;
+using System;
+using Xunit;
 
 namespace BookLibrary.Tests.Services
 {
@@ -24,7 +25,7 @@ namespace BookLibrary.Tests.Services
                 new TBook { Id = 1, Title = "Test Book", AuthorId = 1 },
                 new TBook { Id = 2, Title = "Another Book", AuthorId = 2 }
             };
-            
+
             var bookItems = new List<BookItem>
             {
                 new BookItem { Id = 1, Title = "Test Book", AuthorId = 1 },
@@ -33,7 +34,7 @@ namespace BookLibrary.Tests.Services
 
             repositoryBookMock.Setup(r => r.GetAllBooksAsync(cancellationToken))
                                   .ReturnsAsync(tBooks);
-            
+
             mapperMock.Setup(m => m.Map<IReadOnlyList<BookItem>>(tBooks))
                       .Returns(bookItems);
 
@@ -49,7 +50,7 @@ namespace BookLibrary.Tests.Services
             // Assert
             Assert.NotNull(result);
             Assert.Equal(bookItems, result);
-            
+
             repositoryBookMock.Verify(r => r.GetAllBooksAsync(cancellationToken), Times.Once);
             mapperMock.Verify(m => m.Map<IReadOnlyList<BookItem>>(tBooks), Times.Once);
         }
@@ -196,7 +197,7 @@ namespace BookLibrary.Tests.Services
             );
 
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentNullException>(() => 
+            await Assert.ThrowsAsync<ArgumentNullException>(() =>
                 bookService.CreateBookAsync(null!, CancellationToken.None));
         }
 
@@ -217,9 +218,9 @@ namespace BookLibrary.Tests.Services
             );
 
             // Act & Assert
-            var exception = await Assert.ThrowsAsync<ArgumentException>(() => 
+            var exception = await Assert.ThrowsAsync<ArgumentException>(() =>
                 bookService.CreateBookAsync(bookItem, CancellationToken.None));
-            
+
             Assert.Contains("Title is required", exception.Message);
         }
 
@@ -244,9 +245,9 @@ namespace BookLibrary.Tests.Services
             );
 
             // Act & Assert
-            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => 
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 bookService.CreateBookAsync(bookItem, cancellationToken));
-            
+
             Assert.Contains("Author with Id 999 not found", exception.Message);
         }
 
@@ -276,9 +277,9 @@ namespace BookLibrary.Tests.Services
             );
 
             // Act & Assert
-            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => 
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 bookService.CreateBookAsync(bookItem, cancellationToken));
-            
+
             Assert.Contains("already exists", exception.Message);
         }
 
@@ -334,7 +335,7 @@ namespace BookLibrary.Tests.Services
             Assert.NotNull(result);
             Assert.Equal(resultBookItem.Title, result.Title);
             Assert.Equal(resultBookItem.AuthorId, result.AuthorId);
-            
+
             // Verify the entity was updated
             Assert.Equal("Updated Title", existingTBook.Title);
             Assert.Equal(2, existingTBook.AuthorId);
@@ -458,6 +459,82 @@ namespace BookLibrary.Tests.Services
                 bookService.UpdateBookAsync(1, updatedBookItem, cancellationToken));
 
             Assert.Contains("Author with Id 999 not found", exception.Message);
+        }
+
+        [Fact]
+        public async Task DeleteBookById_ReturnsTaskCompleted()
+        {
+            // Arrange
+            var repositoryBookMock = new Mock<IBookRepository>();
+            var mapperMock = new Mock<IMapper>();
+            var repositoryAuthorMock = new Mock<IAuthorRepository>();
+            var cancellationToken = CancellationToken.None;
+            int bookId = 1;
+
+            var existingTBook = new TBook { Id = bookId, Title = "Book to Delete", AuthorId = 1 };
+            repositoryBookMock.Setup(r => r.GetBookByIdAsync(bookId, cancellationToken))
+                                .ReturnsAsync(existingTBook);
+            repositoryBookMock.Setup(r => r.DeleteBookById(existingTBook, cancellationToken))
+                                .Returns(Task.CompletedTask);
+            repositoryBookMock.Setup(r => r.SaveChangesAsync(cancellationToken))
+                                .Returns(Task.CompletedTask);
+
+            var bookService = new BookService(
+                repositoryBookMock.Object,
+                mapperMock.Object,
+                repositoryAuthorMock.Object
+            );
+
+            // Act
+            await bookService.DeleteBookById(bookId, cancellationToken);
+
+            // Assert
+            repositoryBookMock.Verify(r => r.GetBookByIdAsync(bookId, cancellationToken), Times.Once);
+            repositoryBookMock.Verify(r => r.DeleteBookById(existingTBook, cancellationToken), Times.Once);
+            repositoryBookMock.Verify(r => r.SaveChangesAsync(cancellationToken), Times.Once);
+        }
+
+        [Fact]
+        public async Task DeleteBookById_ThrowsArgumentOutOfRangeException_WhenIdIsInvalid()
+        {
+            // Arrange
+            var repositoryBookMock = new Mock<IBookRepository>();
+            var mapperMock = new Mock<IMapper>();
+            var repositoryAuthorMock = new Mock<IAuthorRepository>();
+            int bookId = -1;
+
+            var bookService = new BookService(
+                repositoryBookMock.Object,
+                mapperMock.Object,
+                repositoryAuthorMock.Object
+            );
+
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
+                bookService.DeleteBookById(bookId, CancellationToken.None));
+            Assert.Contains("ID must be a positive integer", exception.Message);
+        }
+
+        [Fact]
+        public async Task DeleteBookById_ThrowsInvalidOperationException_WhenBookNotFound()
+        {
+            // Arrange
+            var repositoryBookMock = new Mock<IBookRepository>();
+            var mapperMock = new Mock<IMapper>();
+            var repositoryAuthorMock = new Mock<IAuthorRepository>();
+            var cancellationToken = CancellationToken.None;
+            int bookId = 999;
+            repositoryBookMock.Setup(r => r.GetBookByIdAsync(bookId, cancellationToken))
+                                .ReturnsAsync((TBook?)null);
+            var bookService = new BookService(
+                repositoryBookMock.Object,
+                mapperMock.Object,
+                repositoryAuthorMock.Object
+            );
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                bookService.DeleteBookById(bookId, cancellationToken));
+            Assert.Contains($"No book found with ID '{bookId}'", exception.Message);
         }
     }
 }
