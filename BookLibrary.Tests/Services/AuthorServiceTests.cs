@@ -5,10 +5,7 @@ using BookLibrary.Core.Models.Authors;
 using BookLibrary.Core.Models.Books;
 using BookLibrary.Infrastructure.Services;
 using Moq;
-using System;
-using System.Xml.Linq;
 using Xunit;
-using static System.Reflection.Metadata.BlobBuilder;
 
 namespace BookLibrary.Tests.Services
 {
@@ -155,6 +152,25 @@ namespace BookLibrary.Tests.Services
             Assert.Equal(authorItem, request);
             _repositoryAuthorMock.Verify(r => r.GetAuthorByIdAsync(authorId, cancellationToken), Times.Once);
             _mapperMock.Verify(m => m.Map<AuthorItem>(tAuthor), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetAuthorById_ReturnsNull()
+        {
+            // Arrange
+            var cancellationToken = new CancellationToken();
+            var authorId = 999;
+
+            _repositoryAuthorMock.Setup(a => a.GetAuthorByIdAsync(authorId, cancellationToken))
+                .ReturnsAsync((TAuthor?)null);
+
+            var authorService = new AuthorService(_repositoryAuthorMock.Object, _mapperMock.Object);
+
+            // Act & Assert
+            var request = await Assert.ThrowsAsync<KeyNotFoundException>(() => authorService.GetAuthorByIdAsync(authorId, cancellationToken));
+            Assert.Contains("not found", request.Message);
+            _repositoryAuthorMock.Verify(r => r.GetAuthorByIdAsync(authorId, cancellationToken), Times.Once);
+            _mapperMock.Verify(m => m.Map<AuthorItem>(It.IsAny<TBook>()), Times.Never);
         }
     }
 }
