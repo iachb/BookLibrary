@@ -1,16 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AutoMapper;
+﻿using AutoMapper;
 using BookLibrary.Core.Entities;
 using BookLibrary.Core.Interfaces.Repository;
 using BookLibrary.Core.Models.Authors;
 using BookLibrary.Core.Models.Books;
 using BookLibrary.Infrastructure.Services;
 using Moq;
+using System;
+using System.Xml.Linq;
 using Xunit;
+using static System.Reflection.Metadata.BlobBuilder;
 
 namespace BookLibrary.Tests.Services
 {
@@ -93,6 +91,70 @@ namespace BookLibrary.Tests.Services
             Assert.Equal(authorListItem, result);
             _repositoryAuthorMock.Verify(r => r.GetAllAuthorsAsync(cancellationToken), Times.Once);
             _mapperMock.Verify(m => m.Map<IReadOnlyList<AuthorItem>>(authorList), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetAuthorById_ReturnsAuthorItem()
+        {
+            // Arrange
+            var cancellationToken = new CancellationToken();
+            int authorId = 1;
+
+            var authorItem = new AuthorItem
+            {
+                Id = 1,
+                Name = "AuthorName",
+                BirthDate = DateTime.Now,
+                Books = new List<BookItem>
+                {
+                    new BookItem
+                    {
+                        Id = 1,
+                        Title = "BookName"
+                    },
+                    new BookItem
+                    {
+                        Id = 2,
+                        Title = "OtherBook"
+                    }
+                }
+            };
+
+            var tAuthor = new TAuthor
+            {
+                Id = 1,
+                Name = "AuthorName",
+                BirthDate = DateTime.Now,
+                Books = new List<TBook>
+                {
+                    new TBook
+                    {
+                        Id = 1,
+                        Title = "BookName"
+                    },
+                    new TBook
+                    {
+                        Id = 2,
+                        Title = "OtherBook"
+                    }
+                }
+            };
+
+            _repositoryAuthorMock.Setup(a => a.GetAuthorByIdAsync(authorId, cancellationToken))
+                .ReturnsAsync(tAuthor);
+            _mapperMock.Setup(m => m.Map<AuthorItem>(tAuthor))
+                .Returns(authorItem);
+
+            var authorService = new AuthorService(_repositoryAuthorMock.Object, _mapperMock.Object);
+
+            // Act
+            var request = await authorService.GetAuthorByIdAsync(authorId, cancellationToken);
+
+            // Assert
+            Assert.NotNull(request);
+            Assert.Equal(authorItem, request);
+            _repositoryAuthorMock.Verify(r => r.GetAuthorByIdAsync(authorId, cancellationToken), Times.Once);
+            _mapperMock.Verify(m => m.Map<AuthorItem>(tAuthor), Times.Once);
         }
     }
 }
