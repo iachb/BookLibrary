@@ -24,8 +24,4 @@
  <ProjectReference Include="..\BookLibrary.Infrastructure\BookLibrary.Infrastructure.csproj" />
  </ItemGroup>
 
- <ItemGroup>
- <Folder Include="Repositories\" />
- </ItemGroup>
-
 </Project>
