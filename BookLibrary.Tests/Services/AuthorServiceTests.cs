@@ -271,11 +271,51 @@ namespace BookLibrary.Tests.Services
             // Act & Assert
             var result = await Assert.ThrowsAsync<ArgumentException>(() => authorService.CreateAuthorAsync(authorItem, cancellationToken));
 
+            Assert.Contains("An author name is required.", result.Message);
+
             _mapperMock.Verify(m => m.Map<TAuthor>(It.IsAny<AuthorItem>()), Times.Never);
             _repositoryAuthorMock.Verify(r => r.GetAuthorByNameAsync(It.IsAny<string>(), cancellationToken), Times.Never);
             _repositoryAuthorMock.Verify(r => r.CreateAuthorAsync(It.IsAny<TAuthor>(), cancellationToken), Times.Never);
             _repositoryAuthorMock.Verify(r => r.SaveChangesAsync(cancellationToken), Times.Never);
             _mapperMock.Verify(m => m.Map<AuthorItem>(It.IsAny<TAuthor>()), Times.Never);
         }
+
+        [Fact]
+        public async Task CreateAuthorAsync_AuthorDoesntExist_ReturnsInvalidOperationException()
+        {
+            // Arrange 
+            var cancellationToken = new CancellationToken();
+
+            var authorItem = new AuthorItem
+            {
+                Name = "AuthorName",
+                BirthDate = DateTime.Now
+            };
+
+            var tAuthor = new TAuthor
+            {
+                Id = 0,
+                Name = "AuthorName",
+                BirthDate = authorItem.BirthDate
+            };
+
+            _mapperMock.Setup(m => m.Map<TAuthor>(authorItem))
+                .Returns(tAuthor);
+            _repositoryAuthorMock.Setup(a => a.GetAuthorByNameAsync(tAuthor.Name.Trim(), cancellationToken))
+                .ReturnsAsync(tAuthor);
+
+            var authorService = new AuthorService(_repositoryAuthorMock.Object, _mapperMock.Object);
+
+            // Act & Assert
+            var result = await Assert.ThrowsAsync<InvalidOperationException>(() => authorService.CreateAuthorAsync(authorItem));
+            Assert.Contains("already exists", result.Message);
+
+            _mapperMock.Verify(m => m.Map<TAuthor>(It.IsAny<AuthorItem>()), Times.Once);
+            _repositoryAuthorMock.Verify(r => r.GetAuthorByNameAsync(It.IsAny<string>(), cancellationToken), Times.Once);
+            _repositoryAuthorMock.Verify(r => r.CreateAuthorAsync(It.IsAny<TAuthor>(), cancellationToken), Times.Never);
+            _repositoryAuthorMock.Verify(r => r.SaveChangesAsync(cancellationToken), Times.Never);
+            _mapperMock.Verify(m => m.Map<AuthorItem>(It.IsAny<TAuthor>()), Times.Never);
+        }
+
     }
 }
