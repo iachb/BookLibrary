@@ -235,5 +235,23 @@ namespace BookLibrary.Tests.Services
             _mapperMock.Verify(m => m.Map<AuthorItem>(createdTAuthor), Times.Once);
         }
 
+        [Fact]
+        public async Task CreateAuthor_NullItem_ReturnsArgumentNullException()
+        {
+            // Arrange
+            var cancellationToken = new CancellationToken();
+
+            var authorService = new AuthorService(_repositoryAuthorMock.Object, _mapperMock.Object);
+
+            // Act & Assert
+            var result = await Assert.ThrowsAsync<ArgumentNullException>(() => authorService.CreateAuthorAsync(item: null!, cancellationToken));
+
+            _mapperMock.Verify(m => m.Map<TAuthor>(It.IsAny<AuthorItem>()), Times.Never);
+            _repositoryAuthorMock.Verify(r => r.GetAuthorByNameAsync(It.IsAny<string>(), cancellationToken), Times.Never);
+            _repositoryAuthorMock.Verify(r => r.CreateAuthorAsync(It.IsAny<TAuthor>(), cancellationToken), Times.Never);
+            _repositoryAuthorMock.Verify(r => r.SaveChangesAsync(cancellationToken), Times.Never);
+            _mapperMock.Verify(m => m.Map<AuthorItem>(It.IsAny<TAuthor>()), Times.Never);
+        }
+
     }
 }
