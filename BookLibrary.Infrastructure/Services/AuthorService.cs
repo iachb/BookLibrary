@@ -40,8 +40,13 @@ namespace BookLibrary.Infrastructure.Services
                 throw new ArgumentNullException(nameof(item));
             }
             var author = _mapper.Map<TAuthor>(item);
-            var existingAuthor = await _authorRepository.GetAuthorByNameAsync(author.Name, cancellationToken);
-            if(existingAuthor != null)
+            var normalizedName = item.Name?.Trim();
+            if (string.IsNullOrWhiteSpace(normalizedName))
+            {
+                throw new ArgumentException("An author name is required.", nameof(item));
+            }
+            var existingAuthor = await _authorRepository.GetAuthorByNameAsync(normalizedName, cancellationToken);
+            if (existingAuthor != null)
             {
                 throw new InvalidOperationException($"Author with name '{author.Name}' already exists.");
             }
