@@ -369,5 +369,140 @@ namespace BookLibrary.Tests.Services
             _mapperMock.Verify(m => m.Map<AuthorItem>(It.IsAny<TAuthor>()), Times.Once);
         }
 
+        [Fact]
+        public async Task UpdateAuthor_InvalidId_ThrowsArgumentOutOfRangeException()
+        {
+            var cancellationToken = new CancellationToken();
+            var authorService = new AuthorService(_repositoryAuthorMock.Object, _mapperMock.Object);
+
+            var ex = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
+                authorService.UpdateAuthorAsync(0, new AuthorItem { Id = 0, Name = "Name", BirthDate = DateTime.UtcNow }, cancellationToken));
+
+            Assert.Contains("greater than zero", ex.Message);
+            _repositoryAuthorMock.Verify(a => a.GetAuthorByIdAsync(It.IsAny<int>(), cancellationToken), Times.Never);
+            _repositoryAuthorMock.Verify(a => a.GetAuthorByNameAsync(It.IsAny<string>(), cancellationToken), Times.Never);
+            _repositoryAuthorMock.Verify(a => a.SaveChangesAsync(cancellationToken), Times.Never);
+            _mapperMock.Verify(m => m.Map<AuthorItem>(It.IsAny<TAuthor>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task UpdateAuthor_NullItem_ThrowsArgumentNullException()
+        {
+            var cancellationToken = new CancellationToken();
+            var authorService = new AuthorService(_repositoryAuthorMock.Object, _mapperMock.Object);
+
+            var ex = await Assert.ThrowsAsync<ArgumentNullException>(() =>
+                authorService.UpdateAuthorAsync(1, null!, cancellationToken));
+
+            _repositoryAuthorMock.Verify(a => a.GetAuthorByIdAsync(It.IsAny<int>(), cancellationToken), Times.Never);
+            _repositoryAuthorMock.Verify(a => a.GetAuthorByNameAsync(It.IsAny<string>(), cancellationToken), Times.Never);
+            _repositoryAuthorMock.Verify(a => a.SaveChangesAsync(cancellationToken), Times.Never);
+            _mapperMock.Verify(m => m.Map<AuthorItem>(It.IsAny<TAuthor>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task UpdateAuthor_NotFound_ThrowsKeyNotFoundException()
+        {
+            var cancellationToken = new CancellationToken();
+            int authorId = 5;
+            var authorItem = new AuthorItem { Id = 5, Name = "SomeName", BirthDate = DateTime.UtcNow };
+
+            _repositoryAuthorMock.Setup(a => a.GetAuthorByIdAsync(authorId, cancellationToken))
+                .ReturnsAsync((TAuthor?)null);
+
+            var authorService = new AuthorService(_repositoryAuthorMock.Object, _mapperMock.Object);
+
+            var ex = await Assert.ThrowsAsync<KeyNotFoundException>(() =>
+                authorService.UpdateAuthorAsync(authorId, authorItem, cancellationToken));
+
+            Assert.Contains("not found", ex.Message);
+            _repositoryAuthorMock.Verify(a => a.GetAuthorByIdAsync(authorId, cancellationToken), Times.Once);
+            _repositoryAuthorMock.Verify(a => a.GetAuthorByNameAsync(It.IsAny<string>(), cancellationToken), Times.Never);
+            _repositoryAuthorMock.Verify(a => a.SaveChangesAsync(cancellationToken), Times.Never);
+            _mapperMock.Verify(m => m.Map<AuthorItem>(It.IsAny<TAuthor>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task UpdateAuthor_DuplicateName_ThrowsInvalidOperationException()
+        {
+            var cancellationToken = new CancellationToken();
+            int authorId = 3;
+            var authorItem = new AuthorItem { Id = 3, Name = "NewName", BirthDate = DateTime.UtcNow };
+            var existingAuthor = new TAuthor { Id = 3, Name = "OldName", BirthDate = DateTime.UtcNow };
+            var otherAuthor = new TAuthor { Id = 99, Name = "NewName", BirthDate = DateTime.UtcNow };
+
+            _repositoryAuthorMock.Setup(a => a.GetAuthorByIdAsync(authorId, cancellationToken))
+                .ReturnsAsync(existingAuthor);
+            _repositoryAuthorMock.Setup(a => a.GetAuthorByNameAsync(authorItem.Name, cancellationToken))
+                .ReturnsAsync(otherAuthor);
+
+            var authorService = new AuthorService(_repositoryAuthorMock.Object, _mapperMock.Object);
+
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                authorService.UpdateAuthorAsync(authorId, authorItem, cancellationToken));
+
+            Assert.Contains("already exists", ex.Message);
+            _repositoryAuthorMock.Verify(a => a.GetAuthorByIdAsync(authorId, cancellationToken), Times.Once);
+            _repositoryAuthorMock.Verify(a => a.GetAuthorByNameAsync(authorItem.Name, cancellationToken), Times.Once);
+            _repositoryAuthorMock.Verify(a => a.SaveChangesAsync(cancellationToken), Times.Never);
+            _mapperMock.Verify(m => m.Map<AuthorItem>(It.IsAny<TAuthor>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task DeleteAuthor_InvalidId_ThrowsArgumentOutOfRangeException()
+        {
+            var cancellationToken = new CancellationToken();
+            var authorService = new AuthorService(_repositoryAuthorMock.Object, _mapperMock.Object);
+
+            var ex = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
+                authorService.DeleteAuthorAsync(0, cancellationToken));
+
+            Assert.Contains("greater than zero", ex.Message);
+            _repositoryAuthorMock.Verify(a => a.GetAuthorByIdAsync(It.IsAny<int>(), cancellationToken), Times.Never);
+            _repositoryAuthorMock.Verify(a => a.DeleteAuthorByIdAsync(It.IsAny<int>(), cancellationToken), Times.Never);
+            _repositoryAuthorMock.Verify(a => a.SaveChangesAsync(cancellationToken), Times.Never);
+        }
+
+        [Fact]
+        public async Task DeleteAuthor_NotFound_ThrowsKeyNotFoundException()
+        {
+            var cancellationToken = new CancellationToken();
+            int authorId = 10;
+            _repositoryAuthorMock.Setup(a => a.GetAuthorByIdAsync(authorId, cancellationToken))
+                .ReturnsAsync((TAuthor?)null);
+
+            var authorService = new AuthorService(_repositoryAuthorMock.Object, _mapperMock.Object);
+
+            var ex = await Assert.ThrowsAsync<KeyNotFoundException>(() =>
+                authorService.DeleteAuthorAsync(authorId, cancellationToken));
+
+            Assert.Contains("not found", ex.Message);
+            _repositoryAuthorMock.Verify(a => a.GetAuthorByIdAsync(authorId, cancellationToken), Times.Once);
+            _repositoryAuthorMock.Verify(a => a.DeleteAuthorByIdAsync(It.IsAny<int>(), cancellationToken), Times.Never);
+            _repositoryAuthorMock.Verify(a => a.SaveChangesAsync(cancellationToken), Times.Never);
+        }
+
+        [Fact]
+        public async Task DeleteAuthor_Success_DeletesAndSaves()
+        {
+            var cancellationToken = new CancellationToken();
+            int authorId = 7;
+            var existingAuthor = new TAuthor { Id = authorId, Name = "Author", BirthDate = DateTime.UtcNow };
+
+            _repositoryAuthorMock.Setup(a => a.GetAuthorByIdAsync(authorId, cancellationToken))
+                .ReturnsAsync(existingAuthor);
+            _repositoryAuthorMock.Setup(a => a.DeleteAuthorByIdAsync(authorId, cancellationToken))
+                .Returns(Task.CompletedTask);
+            _repositoryAuthorMock.Setup(a => a.SaveChangesAsync(cancellationToken))
+                .ReturnsAsync(1);
+
+            var authorService = new AuthorService(_repositoryAuthorMock.Object, _mapperMock.Object);
+
+            await authorService.DeleteAuthorAsync(authorId, cancellationToken);
+
+            _repositoryAuthorMock.Verify(a => a.GetAuthorByIdAsync(authorId, cancellationToken), Times.Once);
+            _repositoryAuthorMock.Verify(a => a.DeleteAuthorByIdAsync(authorId, cancellationToken), Times.Once);
+            _repositoryAuthorMock.Verify(a => a.SaveChangesAsync(cancellationToken), Times.Once);
+        }
     }
 }
