@@ -1,14 +1,14 @@
+using BookLibrary.Api.Middleware;
 using BookLibrary.Api.Profiles;
 using BookLibrary.Core.Interfaces;
 using BookLibrary.Core.Interfaces.Repository;
+using BookLibrary.Core.Profiles;
 using BookLibrary.Infrastructure.Data;
+using BookLibrary.Infrastructure.Repository;
 using BookLibrary.Infrastructure.Services;
-using BookLibrary.Infrastructure.Repository;    
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
-using BookLibrary.Core.Profiles;
-using BookLibrary.Api.Middleware;
-using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
